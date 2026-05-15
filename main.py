@@ -148,8 +148,8 @@ def crop(layer, width, start_x, start_y, crop_width, crop_height):
 
     return new_layer, crop_width, crop_height
 
-def get_pixel_pos(layer,width):
-    for i in range(layer):
+# def get_pixel_pos(layer,width):
+#     for i in range(layer):
 
 # image manipulation ---------------------------------------------------------------
 
@@ -272,7 +272,7 @@ def play(bg_pixels, bg_width ):
     while True:
         # ---------------- INPUT ----------------
         if msvcrt.kbhit():
-            key = msvcrt.getch()
+            key = msvcrt.getch().lower()
 
             if key == b'\x1b':
                 break
@@ -365,8 +365,17 @@ def play(bg_pixels, bg_width ):
             needs_redraw = True
 
         # ---------------- CAMERA ----------------
-        cam_x = int((car_x)-75)
-        cam_y = int((car_y)-40)
+        cam_x = int(car_x-75)
+        cam_y = int(car_y-40)
+
+        if car_x <= 0:
+            car_x += 1
+        if car_x >= bg_width:
+            car_x -=1
+        if car_y <= 0:
+            car_y += 1
+        if car_x >= bg_width:
+            car_y -=1
 
         # max_cam_x = bg_width - VIEW_W 
         # max_cam_y = (len(bg_pixels) // bg_width) - VIEW_H
@@ -447,7 +456,7 @@ needs_redraw = False
 while True:
     # check for keyboard input
     if msvcrt.kbhit():
-        key = msvcrt.getch()
+        key = msvcrt.getch().lower()
         animating = False  # stop animation immediately
         
         # ESC key deselect button
@@ -474,7 +483,7 @@ while True:
                 
         # arrow keys or WASD
         elif key in (b'\xe0', b'\x00'):
-            key = msvcrt.getch()
+            key = msvcrt.getch().lower()
             
             # left arrow
             if key == b'K':
