@@ -148,8 +148,18 @@ def crop(layer, width, start_x, start_y, crop_width, crop_height):
 
     return new_layer, crop_width, crop_height
 
-# def get_pixel_pos(layer,width):
-#     for i in range(layer):
+def get_pixel_pos(layer, width, target_rgb):
+    positions = []
+
+    for i, pixel in enumerate(layer):
+        r, g, b, _ = pixel
+
+        if (r, g, b) == target_rgb:
+            x = i % width
+            y = i // width
+            positions.append((x, y))
+
+    return positions
 
 # image manipulation ---------------------------------------------------------------
 
@@ -246,8 +256,10 @@ def play_sound():
     winsound.PlaySound(filename, winsound.SND_SYNC | winsound.SND_ASYNC)
 
 
-def play(bg_pixels, bg_width ):
+def play(bg_pixels, bg_width):
     # Camera size (viewport)
+    height = len(bg_pixels) // bg_width
+
     VIEW_W = 200
     VIEW_H = 100
 
@@ -257,8 +269,9 @@ def play(bg_pixels, bg_width ):
     car.setDirection(0)
 
     # Position / physics
-    car_x = 0.0
-    car_y = 0.0
+    pixel_x, pixel_y = get_pixel_pos(bg_pixels,bg_width,(34,177,76))[0]
+    car_x = pixel_x - 25
+    car_y = pixel_y - 14
     velocity_x = 0.0
     velocity_y = 0.0
     car_scale = 1
@@ -368,14 +381,14 @@ def play(bg_pixels, bg_width ):
         cam_x = int(car_x-75)
         cam_y = int(car_y-40)
 
-        if car_x <= 0:
-            car_x += 1
-        if car_x >= bg_width:
-            car_x -=1
-        if car_y <= 0:
-            car_y += 1
-        if car_x >= bg_width:
-            car_y -=1
+        if car_x < -15:
+            car_x = -15
+        if car_x > bg_width-34:
+            car_x = bg_width-34
+        if car_y < -3:
+            car_y = -3
+        if car_y > bg_height-22:
+            car_y = bg_height-22
 
         # max_cam_x = bg_width - VIEW_W 
         # max_cam_y = (len(bg_pixels) // bg_width) - VIEW_H
