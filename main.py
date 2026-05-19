@@ -330,11 +330,63 @@ def play(bg_pixels, bg_width):
             elif key in (b'\xe0', b'\x00'):
                 key = msvcrt.getch()
 
-                if key == b'H':
+                # Left arrow - turn left
+                if key == b'K':
                     car.direction = (car.direction - 1) % 8
-
-                elif key == b'P':
+                    car.setDirection(car.direction)
+                    needs_redraw = True
+                    
+                # Right arrow - turn right
+                elif key == b'M':
                     car.direction = (car.direction + 1) % 8
+                    car.setDirection(car.direction)
+                    needs_redraw = True
+                    
+                # Up arrow - accelerate forward
+                elif key == b'H':
+                    if car.direction == 0:
+                        velocity_y -= acceleration
+                    elif car.direction == 1:
+                        velocity_y -= acceleration * 0.707
+                        velocity_x += acceleration * 0.707
+                    elif car.direction == 2:
+                        velocity_x += acceleration
+                    elif car.direction == 3:
+                        velocity_y += acceleration * 0.707
+                        velocity_x += acceleration * 0.707
+                    elif car.direction == 4:
+                        velocity_y += acceleration
+                    elif car.direction == 5:
+                        velocity_y += acceleration * 0.707
+                        velocity_x -= acceleration * 0.707
+                    elif car.direction == 6:
+                        velocity_x -= acceleration
+                    elif car.direction == 7:
+                        velocity_y -= acceleration * 0.707
+                        velocity_x -= acceleration * 0.707
+
+                # Down arrow - accelerate backward
+                elif key == b'P':
+                    if car.direction == 0:
+                        velocity_y += acceleration
+                    elif car.direction == 1:
+                        velocity_y += acceleration * 0.707
+                        velocity_x -= acceleration * 0.707
+                    elif car.direction == 2:
+                        velocity_x -= acceleration
+                    elif car.direction == 3:
+                        velocity_y -= acceleration * 0.707
+                        velocity_x -= acceleration * 0.707
+                    elif car.direction == 4:
+                        velocity_y -= acceleration
+                    elif car.direction == 5:
+                        velocity_y -= acceleration * 0.707
+                        velocity_x += acceleration * 0.707
+                    elif car.direction == 6:
+                        velocity_x += acceleration
+                    elif car.direction == 7:
+                        velocity_y += acceleration * 0.707
+                        velocity_x += acceleration * 0.707
 
             elif key == b'w':
                 if car.direction == 0:
@@ -420,8 +472,8 @@ def play(bg_pixels, bg_width):
             car_x = bg_width-34
         if car_y < -3:
             car_y = -3
-        if car_y > bg_height-22:
-            car_y = bg_height-22
+        if car_y > height-22:
+            car_y = height-22
 
         # max_cam_x = bg_width - VIEW_W 
         # max_cam_y = (len(bg_pixels) // bg_width) - VIEW_H
