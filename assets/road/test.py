@@ -364,7 +364,7 @@ for y in range(TRACK_H):
 # =========================================================
 
 arraytobmp(
-    "generated_track.bmp",
+    "..\\..\\generated_track.bmp",
     big_canvas,
     map_width,
     map_height

@@ -181,26 +181,31 @@ def draw_call(draw_canvas, canvas_length):
 
 
 def intro():
-    pixels, width, height = bmptoarray("intro.bmp")
-    background, bwidth, bheight = bmptoarray(".\\intro\\title_background.bmp")
+    pixels, intro_w, intro_h = bmptoarray("intro.bmp")
+    piexls, intro_w, intro_h = scale2(pixels, intro_w, 2, 2)
+
+    background, bg_w, bg_h = bmptoarray(".\\intro\\title_background.bmp")
+    background, bg_w, bg_h = scale2(background, bg_w, 2, 2)
 
     clear_call()
-    draw_call(pixels, width)
-
+    draw_call(pixels, intro_w)
 
     for frame in range(16):
         time.sleep(0.06)
 
-        fg_pixels, _, _ = bmptoarray(f".\\intro\\frame{frame}.bmp")
-        
+        fg_pixels, fg_w, fg_h = bmptoarray(f".\\intro\\frame{frame}.bmp")
+        fg_pixels, fg_w, fg_h = scale2(fg_pixels, fg_w, 2, 2)
+
         combined = overlay_layers(background, fg_pixels)
 
         clear_call()
-        draw_call(combined, width)
+        draw_call(combined, bg_w)
+
     clear_call()
-    draw_call(background, width)
+    draw_call(background, bg_w)
+
     bg_pixels, bg_width, bg_height = bmptoarray("generated_track.bmp")
-    return (bg_pixels,bg_width,bg_height)
+    return (bg_pixels, bg_width, bg_height)
 
 
 
@@ -257,51 +262,79 @@ def play_sound():
 
 
 def play(bg_pixels, bg_width):
-    # Camera size (viewport)
     height = len(bg_pixels) // bg_width
 
     VIEW_W = 200
     VIEW_H = 100
 
-    # Initialize car
-    car = Car(car_directions, 0, (255, 0, 0))
-    car.setColor((0, 255, 0))
-    car.setDirection(0)
+    UP    = (34, 177, 76)
+    RIGHT = (34, 177, 75)
+    DOWN  = (34, 177, 74)
+    LEFT  = (34, 177, 73)
 
-    # Position / physics
-    pixel_x, pixel_y = get_pixel_pos(bg_pixels,bg_width,(34,177,76))[0]
+    color_to_dir = {
+        UP: 0,
+        RIGHT: 2,
+        DOWN: 4,
+        LEFT: 6
+    }
+
+    pixel_x, pixel_y = 0, 0
+    start_direction = 0
+    found = False
+
+    for color in color_to_dir.keys():
+        result = get_pixel_pos(bg_pixels, bg_width, color)
+        if result:
+            pixel_x, pixel_y = result[0]
+            start_direction = color_to_dir[color]
+            found = True
+            break
+
+    if not found:
+        pixel_x, pixel_y = 0, 0
+        start_direction = 0
+
+    car = Car(car_directions, start_direction, (0, 255, 0))
+
+    car.direction = start_direction
+    car.setDirection(start_direction)
+    car.setColor((0, 255, 0))
+
+    # ---------------- POSITION / PHYSICS ----------------
     car_x = pixel_x - 25
     car_y = pixel_y - 14
+
     velocity_x = 0.0
     velocity_y = 0.0
+
     car_scale = 1
 
-    acceleration = 1.5
-    friction = 0.92
-    max_speed = 14.0
+    acceleration = 2
+    friction = 0.90
+    max_speed = 9
 
     needs_redraw = True
 
     while True:
         # ---------------- INPUT ----------------
         if msvcrt.kbhit():
-            key = msvcrt.getch().lower()
+            key = msvcrt.getch()
+
+            if key not in (b'\xe0', b'\x00'):
+                key = key.lower()
 
             if key == b'\x1b':
                 break
 
             elif key in (b'\xe0', b'\x00'):
-                key = msvcrt.getch().lower()
+                key = msvcrt.getch()
 
                 if key == b'H':
                     car.direction = (car.direction - 1) % 8
-                    car.setDirection(car.direction)
-                    needs_redraw = True
 
                 elif key == b'P':
                     car.direction = (car.direction + 1) % 8
-                    car.setDirection(car.direction)
-                    needs_redraw = True
 
             elif key == b'w':
                 if car.direction == 0:
@@ -447,9 +480,17 @@ bg_pixels, bg_width, bg_height = intro()
 
 # load menu assets
 menu, mwid, _ = bmptoarray(f".\\assets\\menu.bmp")
+menu, _, _ = scale2(menu,mwid,2,2)
 play_option, _, _ = bmptoarray(f".\\assets\\playoption.bmp")
+play_option, _, _ = scale2(play_option,mwid,2,2)
+
 play_option2, _, _ = bmptoarray(f".\\assets\\playoption2.bmp")
+play_option2, _, _ = scale2(play_option2,mwid,2,2)
+
 quit_option, _, _ = bmptoarray(f".\\assets\\quitoption.bmp")
+quit_option, mwid, _ = scale2(quit_option,mwid,2,2)
+
+
 
 # start menu
 clear_call()
