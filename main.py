@@ -182,7 +182,7 @@ def draw_call(draw_canvas, canvas_length):
 
 def intro():
     pixels, intro_w, intro_h = bmptoarray("intro.bmp")
-    piexls, intro_w, intro_h = scale2(pixels, intro_w, 2, 2)
+    pixels, intro_w, intro_h = scale2(pixels, intro_w, 2, 2)
 
     background, bg_w, bg_h = bmptoarray(".\\intro\\title_background.bmp")
     background, bg_w, bg_h = scale2(background, bg_w, 2, 2)
@@ -283,6 +283,7 @@ def play(bg_pixels, bg_width):
     start_direction = 0
     found = False
 
+    finish_line = get_pixel_pos(bg_pixels, bg_width, (163, 73, 164))
     for color in color_to_dir.keys():
         result = get_pixel_pos(bg_pixels, bg_width, color)
         if result:
@@ -300,7 +301,7 @@ def play(bg_pixels, bg_width):
     car.direction = start_direction
     car.setDirection(start_direction)
     car.setColor((0, 255, 0))
-
+    
     # ---------------- POSITION / PHYSICS ----------------
     car_x = pixel_x - 25
     car_y = pixel_y - 14
@@ -313,6 +314,9 @@ def play(bg_pixels, bg_width):
     acceleration = 2
     friction = 0.90
     max_speed = 9
+
+        
+
 
     needs_redraw = True
 
@@ -475,12 +479,18 @@ def play(bg_pixels, bg_width):
         if car_y > height-22:
             car_y = height-22
 
+        tolerance = 10 
+
+        for pixel_pos in finish_line:
+            px, py = pixel_pos
+
+            if (abs(int(car_x) - px) <= tolerance and abs(int(car_y) - py) <= tolerance):
+                print("###################################\n###################################\n")
         # max_cam_x = bg_width - VIEW_W 
         # max_cam_y = (len(bg_pixels) // bg_width) - VIEW_H
 
         # cam_x = max(-20, min(cam_x, max_cam_x))
         # cam_y = max(-20, min(cam_y, max_cam_y))
-
         # crop world to camera view
         view_pixels, _, _ = crop(
             bg_pixels,
