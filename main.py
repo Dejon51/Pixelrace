@@ -104,7 +104,7 @@ def bmp_to_pixels(filename):
     pixels = [px for row in reversed(rows) for px in row]
     return pixels, width, height
 
-def get_pixel_positions(pixels, width, target_rgb):
+def get_pixel_positions(pixels, width, target_rgb): # takes in target color returns all the pixels location with those colors
     return [
         (i % width, i // width)
         for i, (r, g, b, _) in enumerate(pixels)
@@ -115,10 +115,10 @@ def get_pixel_positions(pixels, width, target_rgb):
 
 WHITE = (255, 255, 255)
 
-def white_pixel():
+def white_pixel(): # returns white pixel
     return [255, 255, 255, "██"]
 
-def overlay(base, top, mask=WHITE):
+def overlay(base, top, mask=WHITE): # allows you to overlay things and key out a certain rgb color allowing for the illusion of transparency
     return [
         b if (t[0], t[1], t[2]) == mask else t
         for b, t in zip(base, top)
@@ -143,7 +143,7 @@ def scale_up(pixels, width, sx, sy):
 
     return new_pixels, new_w, new_h
 
-def crop(pixels, width, x0, y0, cw, ch):
+def crop(pixels, width, x0, y0, cw, ch): # crops image
     height = len(pixels) // width
     result = []
     for y in range(y0, y0 + ch):
@@ -158,10 +158,10 @@ def crop(pixels, width, x0, y0, cw, ch):
 
 prev_frame = ""
 
-def clear_screen():
+def clear_screen(): # clears frame
     print("\033[H", end="")
 
-def render(pixels, width):
+def render(pixels, width): 
     global prev_frame
     parts = []
     for i, (r, g, b, ch) in enumerate(pixels):
@@ -174,7 +174,7 @@ def render(pixels, width):
         sys.stdout.flush()
         prev_frame = frame
 
-def draw_text(canvas, canvas_w, canvas_h, text, x, y, color):
+def draw_text(canvas, canvas_w, canvas_h, text, x, y, color): # returns pixels for text
     cx = x
     for ch in text.upper():
         glyph = FONT.get(ch, FONT[' '])
@@ -187,14 +187,14 @@ def draw_text(canvas, canvas_w, canvas_h, text, x, y, color):
                         canvas[py * canvas_w + px] = [*color, "██"]
         cx += char_w + 1
 
-def fill_bar(canvas, width, y0, y1, color):
+def fill_bar(canvas, width, y0, y1, color): # draws a bar
     for py in range(y0, y1):
         for px in range(width):
             canvas[py * width + px] = [*color, "██"]
 
 # format time
 
-def fmt_time(seconds):
+def fmt_time(seconds): # returns time in a stopwatch fashion
     m = int(seconds) // 60
     s = int(seconds) % 60
     ms = int((seconds - int(seconds)) * 1000)
@@ -202,7 +202,7 @@ def fmt_time(seconds):
 
 # Storage stuff with json
 
-def load_runs():
+def load_runs(): # gets all the runs and best ghost
     if not os.path.exists(RUNS_FILE):
         return {"best_time": None, "runs": [], "best_ghost": None}
     try:
@@ -211,14 +211,14 @@ def load_runs():
     except Exception:
         return {"best_time": None, "runs": [], "best_ghost": None}
 
-def save_runs(data):
+def save_runs(data): # saves runs in json to file
     try:
         with open(RUNS_FILE, "w") as f:
             json.dump(data, f, indent=2)
     except Exception:
         pass
 
-def record_run(lap_time, ghost_frames):
+def record_run(lap_time, ghost_frames): # records runs for ghost and also saves to file
     data = load_runs()
     data["runs"].append({
         "time": lap_time,
@@ -233,30 +233,30 @@ def record_run(lap_time, ghost_frames):
     return is_new_best
 
 def get_best_time():
-    return load_runs().get("best_time")
+    return load_runs().get("best_time") # gets best time out of the json
 
 def get_best_ghost():
-    return load_runs().get("best_ghost")
+    return load_runs().get("best_ghost") # gets best time for ghost
 
 def get_all_runs():
-    return load_runs().get("runs", [])
+    return load_runs().get("runs", []) # returns a list of all the runs aka time
 
 # Previous run recording
 
-class GhostRecorder:
+class GhostRecorder: # class records car movement
     def __init__(self, frames=None):
         self.frames = [(float(f[0]), float(f[1]), int(f[2])) for f in frames] if frames else []
         self.recording = frames is None
         self.index = 0
 
-    def record(self, x, y, direction):
+    def record(self, x, y, direction): # records movements of car using X and Y and direction
         if self.recording:
             self.frames.append((float(x), float(y), int(direction)))
 
-    def stop(self):
+    def stop(self): #stops recording movement
         self.recording = False
 
-    def reset(self):
+    def reset(self): # resets ghost
         self.index = 0
 
     def next_frame(self):
@@ -281,7 +281,7 @@ CAR_ASSETS = [
     r".\assets\fscar.bmp",
 ]
 
-class Car:
+class Car: # class for car takes all assets takes color and direction and outputs the pixels for the car
     def __init__(self, direction=0, color=(0, 255, 0)):
         self.sprites = [bmp_to_pixels(p) for p in CAR_ASSETS]
         self.layers = [s[0] for s in self.sprites]
@@ -312,14 +312,14 @@ class Car:
 
 # GUI drawing
 
-DARK = (15, 15, 15)
+DARK = (15, 15, 15) # constants for all the colors
 DARKER = (15, 15, 40)
 GREY = (150, 150, 150)
 CYAN = (0, 255, 200)
 GOLD = (255, 200, 0)
 BLUE = (130, 130, 255)
 
-def draw_hud(canvas, w, h, lap_time, best_time, finished, has_ghost):
+def draw_hud(canvas, w, h, lap_time, best_time, finished, has_ghost): # like finish line overlay except its draw while driving and it shows your time
     fill_bar(canvas, w, 0, 8, DARK)
 
     time_color = (255, 220, 0) if finished else CYAN
@@ -336,7 +336,7 @@ def draw_hud(canvas, w, h, lap_time, best_time, finished, has_ghost):
                 canvas[py * w + px] = [*DARKER, "██"]
         draw_text(canvas, w, h, "GHOST", w - 38, 1, BLUE)
 
-def draw_finish_overlay(canvas, w, h, lap_time, best_time):
+def draw_finish_overlay(canvas, w, h, lap_time, best_time): # draws finish overlay with time and with the word ghost
     fill_bar(canvas, w, h - 10, h, DARK)
 
     draw_text(canvas, w, h, "TIME:", 1, h - 9, GREY)
@@ -359,7 +359,7 @@ def draw_finish_overlay(canvas, w, h, lap_time, best_time):
 GHOST_COLOR = (80, 120, 255)
 CAR_SPRITES = [bmp_to_pixels(p) for p in CAR_ASSETS]
 
-def draw_ghost(canvas, w, h, gx, gy, gdir, cam_x, cam_y):
+def draw_ghost(canvas, w, h, gx, gy, gdir, cam_x, cam_y): # draws car ghost
     layer, gw = CAR_SPRITES[gdir][0], CAR_SPRITES[gdir][1]
     for i, (r, g, b, _) in enumerate(layer):
         if (r, g, b) == WHITE:
@@ -382,7 +382,7 @@ def apply_acceleration(vx, vy, direction, magnitude):
     dx, dy = ACCEL_VECTORS[direction]
     return vx + dx * magnitude, vy + dy * magnitude
 
-def clamp_speed(vx, vy, max_spd):
+def clamp_speed(vx, vy, max_spd): # stops speed from going lower or higher than a certain speed
     speed = (vx**2 + vy**2) ** 0.5
     if speed > max_spd:
         vx, vy = vx / speed * max_spd, vy / speed * max_spd
@@ -442,7 +442,7 @@ def play(bg_pixels, bg_width):
 
     saved_frames = get_best_ghost()
     ghost_replay = GhostRecorder(saved_frames) if saved_frames else None
-    recorder = GhostRecorder()
+    recorder = GhostRecorder() 
     ghost_frame = None
     session_best = get_best_time()
     dirty = True
@@ -567,7 +567,7 @@ DIVIDER_COL = (40, 40, 60)
 MENU_OPTIONS = ["PLAY", "MUSIC", "RUNS", "QUIT"]
 MUSIC_LABELS = {True: "MUS OFF", False: "MUS ON"}
 
-def draw_menu(canvas, selected, music_off, blink_on):
+def draw_menu(canvas, selected, music_off, blink_on): # draws meenu with buttons
     for i in range(len(canvas)):
         canvas[i] = [*MENU_BG, "██"]
 
@@ -610,7 +610,7 @@ def draw_menu(canvas, selected, music_off, blink_on):
 
     draw_text(canvas, MENU_W, MENU_H, "A/D OR ARROWS: SELECT   ENTER: CONFIRM  ESC: BACK", 2, MENU_H - 8, (50, 50, 70))
 
-def draw_runs(canvas, scroll):
+def draw_runs(canvas, scroll): # Draws timed runs on menu 
     for i in range(len(canvas)):
         canvas[i] = [*MENU_BG, "██"]
 
@@ -642,8 +642,8 @@ def draw_runs(canvas, scroll):
 
 # Versatile music
 
-def play_music():
-    winsound.PlaySound(r".\assets\music\versatile.wav", winsound.SND_SYNC | winsound.SND_ASYNC)
+def play_music(): # plays versatile music
+    winsound.PlaySound(r".\assets\music\versatile.wav", winsound.SND_ASYNC)
 
 # ------------------------------------------------------------
 
@@ -705,9 +705,9 @@ while True:
                     if selected == 0:
                         prev_frame = ""
                         if not music_off:
-                            threading.Thread(target=play_music).start()
+                            threading.Thread(target=play_music).start() # Plays music on seperate thread as to not block the single threaded code
                         play(bg_pixels, bg_width)
-                        winsound.PlaySound(None, winsound.SND_PURGE)
+                        winsound.PlaySound(None, winsound.SND_PURGE) # Stops music
                         sys.stdout.write("\033[2J\033[H")
                         sys.stdout.flush()
                         prev_frame = ""
